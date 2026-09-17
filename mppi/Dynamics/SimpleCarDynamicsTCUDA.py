@@ -8,7 +8,6 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from torch.utils.cpp_extension import load
 
 
 def _load_bicycle_kernel():
@@ -16,17 +15,23 @@ def _load_bicycle_kernel():
     cpp = str(dyn_dir / "analytical_bicycle.cpp")
     cu = str(dyn_dir / "analytical_bicycle.cu")
     os.environ.setdefault("TORCH_CUDA_ARCH_LIST", "8.7")
-    kwargs = {}
-    ext_dir = os.environ.get("TORCH_EXTENSIONS_DIR")
-    if ext_dir:
-        kwargs["build_directory"] = ext_dir
-    return load(
-        name="mppi_analytical_bicycle",
-        sources=[cpp, cu],
-        verbose=False,
-        extra_cuda_cflags=["-O3", "--use_fast_math"],
-        **kwargs,
-    )
+    try:
+        from hound_nav.cuda_cache import load_extension
+
+        return load_extension(
+            "mppi_analytical_bicycle",
+            [cpp, cu],
+            extra_cuda_cflags=["-O3", "--use_fast_math"],
+        )
+    except ImportError:
+        from torch.utils.cpp_extension import load
+
+        return load(
+            name="mppi_analytical_bicycle",
+            sources=[cpp, cu],
+            verbose=False,
+            extra_cuda_cflags=["-O3", "--use_fast_math"],
+        )
 
 
 _KERNEL = None
