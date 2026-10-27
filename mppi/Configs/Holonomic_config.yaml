@@ -1,0 +1,19 @@
+# Config for mppi/holonomic.py. Tuned on a straight line (0.4 and 1.0 m/s, start 0.2 m off the line) with the IGHA* opendubs
+# planner config dt 0.1, accel_max 1.0, alpha_max 0.5. On a line, weights other than the ones noted barely matter (all gave 0.7 to 3 cm RMS).
+MPPI_config:
+  ROLLOUTS: 1024
+  TIMESTEPS: 15            # times the planner's dt = the horizon in seconds (1.5 s). 30 and 50 tracked worse.
+Sampling_config:
+  noise: [0.3, 0.3, 0.15]  # std of the noise on the normalized (ax, ay, alpha)
+  ess: 0.03                # the weight temperature is set each step so the effective sample size is this fraction of ROLLOUTS
+  temperature: 1.0         # only scales the control-perturbation cost
+Cost_config:               # per step, squared error to the reference
+  pos_w: 8.0
+  heading_w: 10.0
+  vel_w: 0.5
+  end_w: 20.0              # extra weight on the last step
+  lethal_w: 200.0          # costmap lethality at the footprint (not tuned: no obstacles on a line)
+  limit_w: 500.0           # the planner's velocity limits as penalties (not tuned: not reached on a line)
+Map_config:
+  map_res: 0.1
+  map_size: 20.0

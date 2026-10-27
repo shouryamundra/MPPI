@@ -41,3 +41,20 @@ and minimum is **17** (indices 0..14 used by the bicycle kernel; last 2 = actuat
 ```bash
 cd ~/colcon_ws && colcon build --packages-select mppi hound_nav --symlink-install
 ```
+
+## Holonomic MPPI (wip-holonomic)
+
+`mppi/holonomic.py` is MPPI for a holonomic robot with the IGHA* opendubs planner's dynamics: state `(x, y, yaw, vx, vy, omega)`
+(yaw in the world frame, velocities in the body frame), normalized acceleration controls `(ax, ay, alpha)` in [-1, 1].
+It holds the dynamics (`mppi/cuda/opendubs_rollout.cu`, a torch binding that includes IGHAStar's `opendubs.cu`), the sampling,
+the tracking cost and `HolonomicMPPI`. The weights are in `mppi/Configs/Holonomic_config.yaml`.
+
+```python
+cfg = yaml.safe_load(open("mppi/Configs/Holonomic_config.yaml"))
+mppi = HolonomicMPPI(ighastar_root, node_info, cfg)   # node_info: the planner's node_info (limits, footprint, dt)
+mppi.set_costmap(costmap, center_xy)                  # optional, 255 free .. 0 lethal
+vx, vy, omega = mppi.step(state6, ref)                # ref: T x 6 reference states, one per dt
+```
+
+`python examples/holonomic_line.py ighastar_root planner.yml` tracks a straight line from 0.2 m off it (needs CUDA, IGHAStar and
+the planner's yaml). The config was tuned on that line only.

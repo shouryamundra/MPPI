@@ -10,6 +10,7 @@ setup(
         package_name: [
             "Dynamics/*.cu",
             "Dynamics/*.cpp",
+            "cuda/*.cu",
             "Configs/*.yaml",
         ],
     },
